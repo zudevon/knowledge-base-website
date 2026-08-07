@@ -1,6 +1,6 @@
 (() => {
   const STORAGE_KEY = 'playbookBuilder.state.v1';
-  const SCHEMA_VERSION = 1;
+  const SCHEMA_VERSION = 2;
 
   const els = {
     title: document.getElementById('playbookTitle'),
@@ -32,14 +32,23 @@
   function makeEmptyStep() {
     return {
       id: uid(),
+      stepId: '',
       name: '',
-      description: '',
+      trigger: '',
       inputs: [],
-      outputs: [],
-      tools: [],
-      owner: '',
-      effort: '',
-      notes: '',
+      sequence: [],
+      decisionRules: [],
+      standardOfDone: '',
+      vetoes: [],
+      failureModes: [],
+      artifacts: [],
+      dependencies: [],
+      tacitLayer: '',
+      maturityLevel: '',
+      maturityNextAction: '',
+      delegationVerdict: '',
+      delegationReason: '',
+      evalQuestion: '',
     };
   }
 
@@ -76,14 +85,23 @@
       const node = els.stepTemplate.content.firstElementChild.cloneNode(true);
       node.dataset.id = step.id;
       node.querySelector('.step-number').textContent = 'Step ' + (index + 1);
+      node.querySelector('.step-id-field').value = step.stepId || '';
       node.querySelector('.step-name').value = step.name || '';
-      node.querySelector('.step-description').value = step.description || '';
+      node.querySelector('.step-trigger').value = step.trigger || '';
       node.querySelector('.step-inputs').value = arrayToLines(step.inputs);
-      node.querySelector('.step-outputs').value = arrayToLines(step.outputs);
-      node.querySelector('.step-tools').value = arrayToLines(step.tools);
-      node.querySelector('.step-owner').value = step.owner || '';
-      node.querySelector('.step-effort').value = step.effort || '';
-      node.querySelector('.step-notes').value = step.notes || '';
+      node.querySelector('.step-sequence').value = arrayToLines(step.sequence);
+      node.querySelector('.step-decision-rules').value = arrayToLines(step.decisionRules);
+      node.querySelector('.step-standard-of-done').value = step.standardOfDone || '';
+      node.querySelector('.step-vetoes').value = arrayToLines(step.vetoes);
+      node.querySelector('.step-failure-modes').value = arrayToLines(step.failureModes);
+      node.querySelector('.step-artifacts').value = arrayToLines(step.artifacts);
+      node.querySelector('.step-dependencies').value = arrayToLines(step.dependencies);
+      node.querySelector('.step-tacit-layer').value = step.tacitLayer || '';
+      node.querySelector('.step-maturity-level').value = step.maturityLevel || '';
+      node.querySelector('.step-maturity-next-action').value = step.maturityNextAction || '';
+      node.querySelector('.step-delegation-verdict').value = step.delegationVerdict || '';
+      node.querySelector('.step-delegation-reason').value = step.delegationReason || '';
+      node.querySelector('.step-eval-question').value = step.evalQuestion || '';
 
       node.querySelector('.move-up-btn').disabled = index === 0;
       node.querySelector('.move-down-btn').disabled = index === state.steps.length - 1;
@@ -95,7 +113,23 @@
   function buildExportObject() {
     return {
       playbook: { ...state.playbook },
-      steps: state.steps.map((s) => ({ ...s })),
+      steps: state.steps.map((s) => ({
+        id: s.stepId,
+        name: s.name,
+        trigger: s.trigger,
+        inputs: s.inputs,
+        sequence: s.sequence,
+        decisionRules: s.decisionRules,
+        standardOfDone: s.standardOfDone,
+        vetoes: s.vetoes,
+        failureModes: s.failureModes,
+        artifacts: s.artifacts,
+        dependencies: s.dependencies,
+        tacitLayer: s.tacitLayer,
+        maturity: { level: s.maturityLevel, nextAction: s.maturityNextAction },
+        delegationVerdict: { verdict: s.delegationVerdict, reason: s.delegationReason },
+        evalQuestion: s.evalQuestion,
+      })),
       meta: { schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString() },
     };
   }
@@ -151,17 +185,33 @@
     const base = makeEmptyState();
     const playbook = { ...base.playbook, ...(parsed && parsed.playbook ? parsed.playbook : {}) };
     const rawSteps = parsed && Array.isArray(parsed.steps) ? parsed.steps : [];
-    const steps = rawSteps.map((s) => ({
-      id: s.id || uid(),
-      name: s.name || '',
-      description: s.description || '',
-      inputs: Array.isArray(s.inputs) ? s.inputs : linesToArray(s.inputs),
-      outputs: Array.isArray(s.outputs) ? s.outputs : linesToArray(s.outputs),
-      tools: Array.isArray(s.tools) ? s.tools : linesToArray(s.tools),
-      owner: s.owner || '',
-      effort: s.effort || '',
-      notes: s.notes || '',
-    }));
+    const steps = rawSteps.map((s) => {
+      const asArray = (v) => (Array.isArray(v) ? v : linesToArray(v));
+      const maturity = s.maturity || {};
+      const delegation = s.delegationVerdict;
+      const delegationVerdict = typeof delegation === 'object' && delegation !== null ? delegation.verdict : delegation;
+      const delegationReason = typeof delegation === 'object' && delegation !== null ? delegation.reason : s.delegationReason;
+      return {
+        id: uid(),
+        stepId: s.id || s.stepId || '',
+        name: s.name || '',
+        trigger: s.trigger || '',
+        inputs: asArray(s.inputs),
+        sequence: asArray(s.sequence),
+        decisionRules: asArray(s.decisionRules),
+        standardOfDone: s.standardOfDone || '',
+        vetoes: asArray(s.vetoes),
+        failureModes: asArray(s.failureModes),
+        artifacts: asArray(s.artifacts),
+        dependencies: asArray(s.dependencies),
+        tacitLayer: s.tacitLayer || '',
+        maturityLevel: (typeof maturity === 'object' ? maturity.level : maturity) || s.maturityLevel || '',
+        maturityNextAction: (typeof maturity === 'object' ? maturity.nextAction : '') || s.maturityNextAction || '',
+        delegationVerdict: delegationVerdict || '',
+        delegationReason: delegationReason || '',
+        evalQuestion: s.evalQuestion || '',
+      };
+    });
     return { playbook, steps };
   }
 
@@ -200,31 +250,45 @@
   // ---- Event wiring: steps ----
   els.addStepBtn.addEventListener('click', addStep);
 
-  els.stepsContainer.addEventListener('input', (e) => {
+  const STEP_FIELD_MAP = {
+    'step-id-field': (step, v) => (step.stepId = v),
+    'step-name': (step, v) => (step.name = v),
+    'step-trigger': (step, v) => (step.trigger = v),
+    'step-inputs': (step, v) => (step.inputs = linesToArray(v)),
+    'step-sequence': (step, v) => (step.sequence = linesToArray(v)),
+    'step-decision-rules': (step, v) => (step.decisionRules = linesToArray(v)),
+    'step-standard-of-done': (step, v) => (step.standardOfDone = v),
+    'step-vetoes': (step, v) => (step.vetoes = linesToArray(v)),
+    'step-failure-modes': (step, v) => (step.failureModes = linesToArray(v)),
+    'step-artifacts': (step, v) => (step.artifacts = linesToArray(v)),
+    'step-dependencies': (step, v) => (step.dependencies = linesToArray(v)),
+    'step-tacit-layer': (step, v) => (step.tacitLayer = v),
+    'step-maturity-level': (step, v) => (step.maturityLevel = v),
+    'step-maturity-next-action': (step, v) => (step.maturityNextAction = v),
+    'step-delegation-verdict': (step, v) => (step.delegationVerdict = v),
+    'step-delegation-reason': (step, v) => (step.delegationReason = v),
+    'step-eval-question': (step, v) => (step.evalQuestion = v),
+  };
+
+  function handleStepFieldChange(e) {
     const card = e.target.closest('.step-card');
     if (!card) return;
     const step = state.steps.find((s) => s.id === card.dataset.id);
     if (!step) return;
 
-    const fieldMap = {
-      'step-name': (v) => (step.name = v),
-      'step-description': (v) => (step.description = v),
-      'step-inputs': (v) => (step.inputs = linesToArray(v)),
-      'step-outputs': (v) => (step.outputs = linesToArray(v)),
-      'step-tools': (v) => (step.tools = linesToArray(v)),
-      'step-owner': (v) => (step.owner = v),
-      'step-effort': (v) => (step.effort = v),
-      'step-notes': (v) => (step.notes = v),
-    };
-
-    for (const cls in fieldMap) {
+    for (const cls in STEP_FIELD_MAP) {
       if (e.target.classList.contains(cls)) {
-        fieldMap[cls](e.target.value);
+        STEP_FIELD_MAP[cls](step, e.target.value);
         break;
       }
     }
     persist();
     updatePreview();
+  }
+
+  els.stepsContainer.addEventListener('input', handleStepFieldChange);
+  els.stepsContainer.addEventListener('change', (e) => {
+    if (e.target.tagName === 'SELECT') handleStepFieldChange(e);
   });
 
   els.stepsContainer.addEventListener('click', (e) => {
@@ -303,14 +367,21 @@
   function buildClaudePrompt(data) {
     return [
       'You are helping design an automation plan for the following manually-run process.',
-      'The process has been documented as a step-by-step playbook, including the inputs, outputs,',
-      'tools, owners, and effort involved at each step.',
+      'Each step below documents its trigger, inputs, real sequence, decision rules (with actual',
+      'thresholds), standard of done, vetoes, failure modes, artifacts, dependencies, tacit judgment,',
+      'a maturity level (L0-L4), a delegation verdict (AGENT / ASSISTED / HUMAN-ONLY) with reason,',
+      'and an eval question for checking correct execution.',
       '',
       'Use this playbook as context to:',
-      '1. Identify which steps are good candidates for automation and why.',
-      '2. Propose an overall automation architecture (scripts, agent, integrations, triggers).',
-      '3. Draft an implementation plan, or a Claude agent/tool definition, that could carry out',
-      '   the automatable steps.',
+      '1. Respect each step’s DELEGATION VERDICT — only propose automating AGENT and ASSISTED steps;',
+      '   treat HUMAN-ONLY steps as fixed handoff points, not automation targets.',
+      '2. For each AGENT/ASSISTED step, turn its DECISION RULES, STANDARD OF DONE, and VETOES into',
+      '   explicit logic or guardrails, and its EVAL QUESTION into a concrete test.',
+      '3. Propose an overall automation architecture (scripts, agent, integrations, triggers) that',
+      '   honors ARTIFACTS naming/versioning and DEPENDENCIES between steps.',
+      '4. Draft an implementation plan, or a Claude agent/tool definition, that could carry out',
+      '   the automatable steps, noting what MATURITY next action is required first for any step',
+      '   not yet ready.',
       '',
       'Playbook JSON:',
       '',

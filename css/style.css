@@ -120,6 +120,42 @@ label {
   font-style: italic;
 }
 
+.field-group {
+  padding-top: 0.9rem;
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.field-group:first-child {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.group-heading {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+select {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 input[type="text"], textarea {
   font-family: inherit;
   font-size: 0.95rem;

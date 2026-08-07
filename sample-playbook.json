@@ -7,30 +7,61 @@
   },
   "steps": [
     {
-      "id": "step-example1",
+      "id": "download-vendor-invoices",
       "name": "Download vendor invoices",
-      "description": "Log into the vendor portal and download all invoices issued in the last 7 days.",
-      "inputs": ["Vendor portal login", "Date range"],
-      "outputs": ["PDF invoices (one per vendor)"],
-      "tools": ["Vendor portal", "Downloads folder"],
-      "owner": "AP Clerk",
-      "effort": "15 min",
-      "notes": "Some vendors email invoices instead of posting to the portal."
+      "trigger": "Every Monday 8am, or on ad-hoc request from AP manager",
+      "inputs": ["Vendor portal login", "Date range (last 7 days)"],
+      "sequence": [
+        "Log into vendor portal",
+        "Filter invoices by date range",
+        "Download each invoice as PDF into /invoices/{week}",
+        "Cross-check count against portal total shown"
+      ],
+      "decisionRules": [
+        "If portal shows 0 new invoices for a vendor that normally sends 2+/week, flag for manual follow-up"
+      ],
+      "standardOfDone": "Every invoice listed in the portal for the date range is downloaded and named consistently; count matches portal total.",
+      "vetoes": ["Never mark this step done if the portal total and downloaded count disagree"],
+      "failureModes": [
+        "Portal session times out mid-download, silently skipping remaining invoices (happened 2026-03-11)",
+        "Some vendors email invoices instead of posting to the portal, so they get missed"
+      ],
+      "artifacts": ["PDF invoices named vendor-YYYYMMDD.pdf in /invoices/{week}/"],
+      "dependencies": ["Vendor portal access", "Feeds into: Match invoices to purchase orders"],
+      "tacitLayer": "I re-check the portal total against my download count every time, even though that's never been written down anywhere — it's the only way I've caught silent skips.",
+      "maturity": { "level": "L2", "nextAction": "Add a scripted count-check so the mismatch is flagged automatically instead of relying on me remembering to look." },
+      "delegationVerdict": { "verdict": "AGENT", "reason": "Mechanical download-and-count task with a clear, testable success condition." },
+      "evalQuestion": "Does the number of PDFs in /invoices/{week}/ exactly equal the portal's displayed invoice count for that date range?"
     },
     {
-      "id": "step-example2",
+      "id": "match-invoices-to-pos",
       "name": "Match invoices to purchase orders",
-      "description": "For each invoice, look up the matching PO number in the ERP system and compare line items.",
+      "trigger": "Immediately after invoice download step completes",
       "inputs": ["Downloaded invoices", "ERP system access"],
-      "outputs": ["Matched/unmatched status per invoice"],
-      "tools": ["ERP system", "Excel"],
-      "owner": "AP Clerk",
-      "effort": "30 min",
-      "notes": "Mismatches over $50 must be escalated to the purchasing manager."
+      "sequence": [
+        "Open each invoice and note the PO number",
+        "Look up the PO in the ERP system",
+        "Compare line items and totals",
+        "Record matched/unmatched status per invoice"
+      ],
+      "decisionRules": [
+        "Mismatches under $50: auto-approve",
+        "Mismatches $50-$500: escalate to purchasing manager for review",
+        "Mismatches over $500: hold payment entirely, escalate to controller"
+      ],
+      "standardOfDone": "Every invoice has a recorded matched/unmatched status and, for mismatches, an escalation owner assigned.",
+      "vetoes": ["Never auto-approve a mismatch over $50, regardless of vendor history"],
+      "failureModes": ["PO number handwritten or missing on invoice, causing lookup failures"],
+      "artifacts": ["Match-status spreadsheet, one row per invoice, versioned as recon-{week}.xlsx"],
+      "dependencies": ["Depends on: Download vendor invoices", "ERP system uptime"],
+      "tacitLayer": "For long-standing vendors I trust, I sometimes let a slightly-over-$50 mismatch through if it's clearly a rounding/tax difference — that judgment call has never been written down.",
+      "maturity": { "level": "L1", "nextAction": "Write down the specific 'clearly a rounding/tax difference' heuristic so it can be codified as a rule instead of relying on tacit judgment." },
+      "delegationVerdict": { "verdict": "ASSISTED", "reason": "The $ thresholds are automatable, but edge-case judgment on rounding/tax differences still needs a human until that heuristic is made explicit." },
+      "evalQuestion": "For a batch of test invoices with known mismatches, does the system apply the correct threshold-based routing (auto-approve / escalate / hold) for 100% of them?"
     }
   ],
   "meta": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "exportedAt": "2026-01-01T00:00:00.000Z"
   }
 }

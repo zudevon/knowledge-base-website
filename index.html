@@ -78,41 +78,110 @@
         <button type="button" class="icon-btn delete-step-btn" title="Delete step" aria-label="Delete step">✕</button>
       </div>
     </div>
-    <div class="field">
-      <label>Step Name</label>
-      <input type="text" class="step-name" placeholder="e.g., Export transactions from bank portal">
+    <div class="field-group">
+      <p class="group-heading">Identity &amp; Trigger</p>
+      <div class="field-row">
+        <div class="field">
+          <label>ID <span class="hint">(stable identifier)</span></label>
+          <input type="text" class="step-id-field" placeholder="e.g., reconcile-invoices-01">
+        </div>
+        <div class="field">
+          <label>Name <span class="hint">(verb-first)</span></label>
+          <input type="text" class="step-name" placeholder="e.g., Reconcile weekly invoices">
+        </div>
+      </div>
+      <div class="field">
+        <label>Trigger</label>
+        <textarea class="step-trigger" rows="2" placeholder="What starts it — event, date, threshold, or request"></textarea>
+      </div>
     </div>
-    <div class="field">
-      <label>Description</label>
-      <textarea class="step-description" rows="2" placeholder="What happens in this step, in plain language?"></textarea>
-    </div>
-    <div class="field-row">
+
+    <div class="field-group">
+      <p class="group-heading">Inputs &amp; Process</p>
       <div class="field">
         <label>Inputs <span class="hint">(one per line)</span></label>
-        <textarea class="step-inputs" rows="3" placeholder="e.g., Bank login credentials"></textarea>
+        <textarea class="step-inputs" rows="3" placeholder="Data, files, people, tools required to begin"></textarea>
       </div>
       <div class="field">
-        <label>Outputs <span class="hint">(one per line)</span></label>
-        <textarea class="step-outputs" rows="3" placeholder="e.g., CSV of transactions"></textarea>
-      </div>
-    </div>
-    <div class="field">
-      <label>Tools / Systems Involved <span class="hint">(one per line)</span></label>
-      <textarea class="step-tools" rows="2" placeholder="e.g., Chase online banking, Excel"></textarea>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Owner</label>
-        <input type="text" class="step-owner" placeholder="Who does this step today?">
+        <label>Sequence <span class="hint">(one step per line, as actually performed)</span></label>
+        <textarea class="step-sequence" rows="4" placeholder="Ordered steps, as actually performed — not idealized"></textarea>
       </div>
       <div class="field">
-        <label>Time / Effort</label>
-        <input type="text" class="step-effort" placeholder="e.g., 10 min, 2 hrs">
+        <label>Decision Rules <span class="hint">(one per line, use real values)</span></label>
+        <textarea class="step-decision-rules" rows="3" placeholder="Thresholds, gates, heuristics — quote your actual numbers and rules"></textarea>
       </div>
     </div>
-    <div class="field">
-      <label>Notes / Edge Cases</label>
-      <textarea class="step-notes" rows="2" placeholder="Anything unusual, exceptions, decision points..."></textarea>
+
+    <div class="field-group">
+      <p class="group-heading">Quality &amp; Risk</p>
+      <div class="field">
+        <label>Standard of Done</label>
+        <textarea class="step-standard-of-done" rows="2" placeholder="The quality bar. What makes output acceptable."></textarea>
+      </div>
+      <div class="field">
+        <label>Vetoes <span class="hint">(one per line)</span></label>
+        <textarea class="step-vetoes" rows="2" placeholder="What kills it outright. Your hard &quot;no&quot;s."></textarea>
+      </div>
+      <div class="field">
+        <label>Failure Modes <span class="hint">(one per line)</span></label>
+        <textarea class="step-failure-modes" rows="2" placeholder="How it has gone wrong, from evidence"></textarea>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <p class="group-heading">Outputs &amp; Context</p>
+      <div class="field">
+        <label>Artifacts <span class="hint">(one per line)</span></label>
+        <textarea class="step-artifacts" rows="2" placeholder="What it produces; naming and versioning convention"></textarea>
+      </div>
+      <div class="field">
+        <label>Dependencies <span class="hint">(one per line)</span></label>
+        <textarea class="step-dependencies" rows="2" placeholder="Upstream/downstream SOPs, people, systems"></textarea>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <p class="group-heading">Judgment &amp; Automation Readiness</p>
+      <div class="field">
+        <label>Tacit Layer</label>
+        <textarea class="step-tacit-layer" rows="2" placeholder="The judgment inside this that's never been stated, but the evidence implies you apply"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Maturity</label>
+          <select class="step-maturity-level">
+            <option value="">Select level…</option>
+            <option value="L0">L0</option>
+            <option value="L1">L1</option>
+            <option value="L2">L2</option>
+            <option value="L3">L3</option>
+            <option value="L4">L4</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Next Action to Advance</label>
+          <input type="text" class="step-maturity-next-action" placeholder="The specific next action to advance one level">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Delegation Verdict</label>
+          <select class="step-delegation-verdict">
+            <option value="">Select verdict…</option>
+            <option value="AGENT">AGENT</option>
+            <option value="ASSISTED">ASSISTED</option>
+            <option value="HUMAN-ONLY">HUMAN-ONLY</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Reason</label>
+          <input type="text" class="step-delegation-reason" placeholder="Why. Human-only is a legitimate answer where taste, relationship, or authority is irreducible.">
+        </div>
+      </div>
+      <div class="field">
+        <label>Eval Question</label>
+        <textarea class="step-eval-question" rows="2" placeholder="How would we know an agent executed this correctly? Write it as a testable question, not a sentiment."></textarea>
+      </div>
     </div>
   </div>
 </template>

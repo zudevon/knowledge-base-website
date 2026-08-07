@@ -9,12 +9,21 @@ or agent.
 ## What it does
 
 - Capture playbook-level details: title, objective, process owner, frequency.
-- Add as many steps as needed, each with:
-  - Name and description
-  - Inputs and outputs
-  - Tools / systems involved
-  - Owner and time/effort
-  - Notes / edge cases
+- Add as many steps as needed, each documenting:
+  - **ID & Name** — stable identifier, verb-first name
+  - **Trigger** — what starts it: event, date, threshold, or request
+  - **Inputs** — data, files, people, tools required to begin
+  - **Sequence** — ordered steps, as actually performed, not idealized
+  - **Decision Rules** — thresholds, gates, and heuristics with real values
+  - **Standard of Done** — the quality bar; what makes output acceptable
+  - **Vetoes** — what kills it outright; hard "no"s
+  - **Failure Modes** — how it has gone wrong, from evidence
+  - **Artifacts** — what it produces; naming and versioning convention
+  - **Dependencies** — upstream/downstream SOPs, people, systems
+  - **Tacit Layer** — the unstated judgment the evidence implies is applied
+  - **Maturity** — L0–L4, plus the specific next action to advance one level
+  - **Delegation Verdict** — AGENT / ASSISTED / HUMAN-ONLY, with reason
+  - **Eval Question** — a testable question for checking correct execution
 - Reorder, edit, or delete steps at any time.
 - **Import JSON** — load a previously exported playbook (or `sample-playbook.json`) back
   into the form to keep editing it.
@@ -38,19 +47,25 @@ No build step, no dependencies — plain HTML/CSS/JS, deployable as-is to GitHub
   },
   "steps": [
     {
-      "id": "string",
-      "name": "string",
-      "description": "string",
+      "id": "string (stable identifier)",
+      "name": "string (verb-first)",
+      "trigger": "string",
       "inputs": ["string"],
-      "outputs": ["string"],
-      "tools": ["string"],
-      "owner": "string",
-      "effort": "string",
-      "notes": "string"
+      "sequence": ["string"],
+      "decisionRules": ["string"],
+      "standardOfDone": "string",
+      "vetoes": ["string"],
+      "failureModes": ["string"],
+      "artifacts": ["string"],
+      "dependencies": ["string"],
+      "tacitLayer": "string",
+      "maturity": { "level": "L0|L1|L2|L3|L4", "nextAction": "string" },
+      "delegationVerdict": { "verdict": "AGENT|ASSISTED|HUMAN-ONLY", "reason": "string" },
+      "evalQuestion": "string"
     }
   ],
   "meta": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "exportedAt": "ISO 8601 timestamp"
   }
 }
