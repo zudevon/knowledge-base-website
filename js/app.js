@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = 'playbookBuilder.state.v1';
+  const THEME_KEY = 'playbookBuilder.theme';
   const SCHEMA_VERSION = 2;
 
   const els = {
@@ -18,6 +19,7 @@
     jsonPreview: document.getElementById('jsonPreview'),
     statusMsg: document.getElementById('statusMsg'),
     stepTemplate: document.getElementById('stepTemplate'),
+    themeToggleBtn: document.getElementById('themeToggleBtn'),
   };
 
   let state = loadState() || makeEmptyState();
@@ -401,6 +403,46 @@
       alert('Could not copy automatically — the prompt was logged to the browser console instead.');
     }
   });
+
+  // ---- Theme ----
+  function getStoredTheme() {
+    try {
+      return localStorage.getItem(THEME_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function currentTheme() {
+    return getStoredTheme() || (systemPrefersDark() ? 'dark' : 'light');
+  }
+
+  function updateThemeButton() {
+    const isDark = currentTheme() === 'dark';
+    els.themeToggleBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+    els.themeToggleBtn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  els.themeToggleBtn.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch (e) {}
+    document.documentElement.setAttribute('data-theme', next);
+    updateThemeButton();
+  });
+
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (!getStoredTheme()) updateThemeButton();
+    });
+  }
+
+  updateThemeButton();
 
   // ---- Init ----
   renderAll();

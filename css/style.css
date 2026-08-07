@@ -12,7 +12,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #14161a;
     --surface: #1c1f26;
     --border: #2c313b;
@@ -25,6 +25,18 @@
   }
 }
 
+:root[data-theme="dark"] {
+  --bg: #14161a;
+  --surface: #1c1f26;
+  --border: #2c313b;
+  --text: #e8eaed;
+  --text-muted: #9aa3b0;
+  --accent: #7b93ff;
+  --accent-hover: #97aaff;
+  --danger: #ff6b61;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -32,6 +44,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
+  transition: background-color 0.15s ease, color 0.15s ease;
   line-height: 1.5;
 }
 
@@ -74,6 +87,11 @@ main {
 .status-msg {
   color: var(--text-muted);
   font-size: 0.85rem;
+  flex: 1;
+}
+
+.theme-toggle-btn {
+  white-space: nowrap;
 }
 
 .card {

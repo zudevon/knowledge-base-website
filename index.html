@@ -6,6 +6,14 @@
 <title>Playbook Builder — Process Automation Knowledge Base</title>
 <meta name="description" content="Document a process step by step, capture inputs/outputs per step, then export JSON to use as LLM context for automation planning.">
 <link rel="stylesheet" href="css/style.css">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('playbookBuilder.theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
 <header class="site-header">
@@ -25,6 +33,7 @@
     <button id="exportBtn" class="btn btn-primary" type="button">Export JSON</button>
     <button id="copyPromptBtn" class="btn btn-ghost" type="button">Copy Claude Prompt</button>
     <span id="statusMsg" class="status-msg" role="status" aria-live="polite"></span>
+    <button id="themeToggleBtn" class="btn btn-ghost theme-toggle-btn" type="button" aria-label="Toggle light/dark theme">🌙 Dark</button>
   </section>
 
   <section class="card playbook-meta">
