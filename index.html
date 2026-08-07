@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playbook Builder — Process Automation Knowledge Base</title>
+<meta name="description" content="Document a process step by step, capture inputs/outputs per step, then export JSON to use as LLM context for automation planning.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <h1>Playbook Builder</h1>
+    <p class="subtitle">Document a process step-by-step — inputs, outputs, tools, owners — then export it as JSON to hand to an LLM for automation planning.</p>
+  </div>
+</header>
+
+<main>
+  <section class="toolbar" aria-label="File actions">
+    <button id="newPlaybookBtn" class="btn btn-ghost" type="button">New Playbook</button>
+    <label class="btn btn-ghost file-btn">
+      Import JSON
+      <input type="file" id="importInput" accept="application/json,.json" hidden>
+    </label>
+    <button id="exportBtn" class="btn btn-primary" type="button">Export JSON</button>
+    <button id="copyPromptBtn" class="btn btn-ghost" type="button">Copy Claude Prompt</button>
+    <span id="statusMsg" class="status-msg" role="status" aria-live="polite"></span>
+  </section>
+
+  <section class="card playbook-meta">
+    <h2>Playbook Details</h2>
+    <div class="field">
+      <label for="playbookTitle">Title</label>
+      <input type="text" id="playbookTitle" placeholder="e.g., Weekly Invoice Reconciliation">
+    </div>
+    <div class="field">
+      <label for="playbookObjective">Objective / Goal</label>
+      <textarea id="playbookObjective" rows="3" placeholder="What is this process trying to achieve? What would &quot;automated&quot; success look like?"></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="playbookOwner">Process Owner</label>
+        <input type="text" id="playbookOwner" placeholder="Who runs this process today?">
+      </div>
+      <div class="field">
+        <label for="playbookFrequency">Frequency</label>
+        <input type="text" id="playbookFrequency" placeholder="e.g., Daily, Weekly, On-demand">
+      </div>
+    </div>
+  </section>
+
+  <section class="steps-section">
+    <div class="steps-header">
+      <h2>Steps</h2>
+      <button id="addStepBtn" class="btn btn-primary" type="button">+ Add Step</button>
+    </div>
+    <div id="stepsContainer" class="steps-container"></div>
+    <p id="emptyState" class="empty-state">No steps yet. Click "Add Step" to start building your playbook, or import an existing JSON file above.</p>
+  </section>
+
+  <section class="card preview-section">
+    <button id="togglePreviewBtn" class="btn btn-ghost" type="button" aria-expanded="false">Show JSON Preview</button>
+    <pre id="jsonPreview" class="json-preview" hidden></pre>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>Your work is autosaved in this browser only. Use <strong>Export</strong> to save a JSON file you can keep, share, or feed to an LLM — and <strong>Import</strong> to pick up an existing playbook and keep editing it.</p>
+</footer>
+
+<template id="stepTemplate">
+  <div class="step-card">
+    <div class="step-card-header">
+      <span class="step-number">Step</span>
+      <div class="step-actions">
+        <button type="button" class="icon-btn move-up-btn" title="Move step up" aria-label="Move step up">↑</button>
+        <button type="button" class="icon-btn move-down-btn" title="Move step down" aria-label="Move step down">↓</button>
+        <button type="button" class="icon-btn delete-step-btn" title="Delete step" aria-label="Delete step">✕</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Step Name</label>
+      <input type="text" class="step-name" placeholder="e.g., Export transactions from bank portal">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea class="step-description" rows="2" placeholder="What happens in this step, in plain language?"></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Inputs <span class="hint">(one per line)</span></label>
+        <textarea class="step-inputs" rows="3" placeholder="e.g., Bank login credentials"></textarea>
+      </div>
+      <div class="field">
+        <label>Outputs <span class="hint">(one per line)</span></label>
+        <textarea class="step-outputs" rows="3" placeholder="e.g., CSV of transactions"></textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label>Tools / Systems Involved <span class="hint">(one per line)</span></label>
+      <textarea class="step-tools" rows="2" placeholder="e.g., Chase online banking, Excel"></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Owner</label>
+        <input type="text" class="step-owner" placeholder="Who does this step today?">
+      </div>
+      <div class="field">
+        <label>Time / Effort</label>
+        <input type="text" class="step-effort" placeholder="e.g., 10 min, 2 hrs">
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes / Edge Cases</label>
+      <textarea class="step-notes" rows="2" placeholder="Anything unusual, exceptions, decision points..."></textarea>
+    </div>
+  </div>
+</template>
+
+<script src="js/app.js"></script>
+</body>
+</html>

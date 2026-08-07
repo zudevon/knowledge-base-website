@@ -1,0 +1,36 @@
+{
+  "playbook": {
+    "title": "Weekly Invoice Reconciliation",
+    "objective": "Match incoming vendor invoices against purchase orders and flag mismatches before payment is approved.",
+    "owner": "Accounts Payable",
+    "frequency": "Weekly"
+  },
+  "steps": [
+    {
+      "id": "step-example1",
+      "name": "Download vendor invoices",
+      "description": "Log into the vendor portal and download all invoices issued in the last 7 days.",
+      "inputs": ["Vendor portal login", "Date range"],
+      "outputs": ["PDF invoices (one per vendor)"],
+      "tools": ["Vendor portal", "Downloads folder"],
+      "owner": "AP Clerk",
+      "effort": "15 min",
+      "notes": "Some vendors email invoices instead of posting to the portal."
+    },
+    {
+      "id": "step-example2",
+      "name": "Match invoices to purchase orders",
+      "description": "For each invoice, look up the matching PO number in the ERP system and compare line items.",
+      "inputs": ["Downloaded invoices", "ERP system access"],
+      "outputs": ["Matched/unmatched status per invoice"],
+      "tools": ["ERP system", "Excel"],
+      "owner": "AP Clerk",
+      "effort": "30 min",
+      "notes": "Mismatches over $50 must be escalated to the purchasing manager."
+    }
+  ],
+  "meta": {
+    "schemaVersion": 1,
+    "exportedAt": "2026-01-01T00:00:00.000Z"
+  }
+}
