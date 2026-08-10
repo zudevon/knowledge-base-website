@@ -80,6 +80,56 @@ main {
   flex: 1;
 }
 
+.export-state {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.export-state:empty {
+  display: none;
+}
+
+.export-state.is-dirty {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.export-state.is-clean {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .export-state.is-dirty {
+    color: #fbbf24;
+  }
+
+  :root:not([data-theme="light"]) .export-state.is-clean {
+    color: #34d399;
+  }
+}
+
+:root[data-theme="dark"] .export-state.is-dirty {
+  color: #fbbf24;
+}
+
+:root[data-theme="dark"] .export-state.is-clean {
+  color: #34d399;
+}
+
+.field-help {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
 .theme-toggle-btn {
   white-space: nowrap;
 }

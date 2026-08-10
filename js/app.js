@@ -29,6 +29,9 @@
     flowZoomOutBtn: document.getElementById('flowZoomOutBtn'),
     flowResetViewBtn: document.getElementById('flowResetViewBtn'),
     flowExportPngBtn: document.getElementById('flowExportPngBtn'),
+    capturedBy: document.getElementById('playbookCapturedBy'),
+    playbookIdDisplay: document.getElementById('playbookIdDisplay'),
+    exportState: document.getElementById('exportState'),
   };
 
   const expandedStepIds = new Set();
@@ -37,10 +40,25 @@
 
   function makeEmptyState() {
     return {
-      playbook: { title: '', objective: '', owner: '', frequency: '' },
+      playbook: {
+        playbookId: newPlaybookId(),
+        version: 0,
+        title: '',
+        objective: '',
+        owner: '',
+        frequency: '',
+        capturedBy: '',
+        capturedAt: new Date().toISOString(),
+      },
       steps: [],
       flowLayout: {},
+      // Local bookkeeping only — deliberately excluded from buildExportObject().
+      local: { lastExportSignature: null },
     };
+  }
+
+  function newPlaybookId() {
+    return 'pb-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   }
 
   function makeEmptyStep() {
@@ -121,8 +139,11 @@
     els.objective.value = state.playbook.objective || '';
     els.owner.value = state.playbook.owner || '';
     els.frequency.value = state.playbook.frequency || '';
+    els.capturedBy.value = state.playbook.capturedBy || '';
+    els.playbookIdDisplay.value = state.playbook.playbookId || '';
     renderSteps();
     updatePreview();
+    updateExportState();
   }
 
   function renderSteps() {
@@ -213,10 +234,55 @@
     };
   }
 
+  // Signature of the meaningful content, used to tell "changed since last export" from
+  // "unchanged". Version and timestamps are excluded so that bumping the version on export
+  // does not itself count as a change.
+  function contentSignature() {
+    const { playbookId, version, capturedAt, ...rest } = state.playbook;
+    return JSON.stringify({ playbook: rest, steps: state.steps });
+  }
+
+  function isDirty() {
+    const sig = state.local && state.local.lastExportSignature;
+    if (sig === null || sig === undefined) return hasContent();
+    return sig !== contentSignature();
+  }
+
+  function hasContent() {
+    const p = state.playbook;
+    return Boolean(p.title || p.objective || p.owner || p.capturedBy || state.steps.length);
+  }
+
+  function updateExportState() {
+    if (!els.exportState) return;
+    if (!hasContent()) {
+      els.exportState.textContent = '';
+      els.exportState.className = 'export-state';
+      return;
+    }
+    if (isDirty()) {
+      const never = !(state.local && state.local.lastExportSignature);
+      els.exportState.textContent = never ? '● Not yet exported' : '● Unsaved changes since last export';
+      els.exportState.className = 'export-state is-dirty';
+      els.exportState.title =
+        'Your work is autosaved in this browser only. Clearing site data or moving to another ' +
+        'machine loses it — Export JSON to get a durable file.';
+    } else {
+      const v = Number(state.playbook.version) || 0;
+      // v === 0 means this content came in via Import and has never been exported from here.
+      els.exportState.textContent = v ? '✓ Exported v' + v : '✓ Matches imported file';
+      els.exportState.className = 'export-state is-clean';
+      els.exportState.title = v
+        ? 'The current content matches the last file you exported.'
+        : 'The current content still matches the file you imported.';
+    }
+  }
+
   function updatePreview() {
     if (!els.jsonPreview.hidden) {
       els.jsonPreview.textContent = JSON.stringify(buildExportObject(), null, 2);
     }
+    updateExportState();
   }
 
   // ---- State mutation ----
@@ -304,7 +370,11 @@
   // always mints fresh internal ids and resets flowLayout (no positions in the export).
   function normalizeImportedFile(parsed) {
     const base = makeEmptyState();
+    // Spreading the incoming playbook last preserves an existing playbookId/version/capturedAt,
+    // so re-importing an exported file continues that playbook's lineage rather than forking it.
+    // Files from before this field existed fall back to the freshly-minted id in `base`.
     const playbook = { ...base.playbook, ...(parsed && parsed.playbook ? parsed.playbook : {}) };
+    playbook.version = Number(playbook.version) || 0;
     const rawSteps = parsed && Array.isArray(parsed.steps) ? parsed.steps : [];
     const asArray = (v) => (Array.isArray(v) ? v : linesToArray(v));
     const steps = rawSteps.map((s) => {
@@ -335,7 +405,8 @@
         metadata,
       };
     });
-    return { playbook, steps, flowLayout: {} };
+    const local = parsed && parsed.local ? parsed.local : base.local;
+    return { playbook, steps, flowLayout: {}, local };
   }
 
   // ---- Status messages ----
@@ -366,6 +437,11 @@
   });
   els.frequency.addEventListener('input', () => {
     state.playbook.frequency = els.frequency.value;
+    persist();
+    updatePreview();
+  });
+  els.capturedBy.addEventListener('input', () => {
+    state.playbook.capturedBy = els.capturedBy.value;
     persist();
     updatePreview();
   });
@@ -476,6 +552,8 @@
         const parsed = JSON.parse(reader.result);
         state = normalizeImportedFile(parsed);
         expandedStepIds.clear();
+        // The content just came from a file on disk, so a durable copy demonstrably exists.
+        state.local.lastExportSignature = contentSignature();
         persist();
         renderAll();
         rebuildFlowChart();
@@ -490,6 +568,8 @@
   });
 
   els.exportBtn.addEventListener('click', () => {
+    // Bump before building so the exported file carries the version it is.
+    state.playbook.version = (Number(state.playbook.version) || 0) + 1;
     const data = buildExportObject();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -501,12 +581,24 @@
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '') || 'playbook';
     a.href = url;
-    a.download = `${safeTitle}.json`;
+    a.download = `${safeTitle}.v${state.playbook.version}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    state.local.lastExportSignature = contentSignature();
+    persist();
+    updateExportState();
     setStatus('Exported ' + a.download);
+  });
+
+  // localStorage is the only store and only Export produces a durable file, so warn before
+  // work can be lost to a closed tab.
+  window.addEventListener('beforeunload', (e) => {
+    if (!isDirty()) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
   });
 
   // ---- JSON preview toggle ----

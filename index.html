@@ -44,6 +44,7 @@
     </label>
     <button id="exportBtn" class="btn btn-primary" type="button">Export JSON</button>
     <button id="copyPromptBtn" class="btn btn-ghost" type="button">Copy Claude Prompt</button>
+    <span id="exportState" class="export-state" role="status" aria-live="polite"></span>
     <span id="statusMsg" class="status-msg" role="status" aria-live="polite"></span>
     <button id="themeToggleBtn" class="btn btn-ghost theme-toggle-btn" type="button" aria-label="Toggle light/dark theme">🌙 Dark</button>
   </section>
@@ -66,6 +67,20 @@
       <div class="field">
         <label for="playbookFrequency">Frequency</label>
         <input type="text" id="playbookFrequency" placeholder="e.g., Daily, Weekly, On-demand">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="playbookCapturedBy">Captured By</label>
+        <input type="text" id="playbookCapturedBy" placeholder="Who filled this in? (may differ from the owner)">
+      </div>
+      <div class="field">
+        <label for="playbookIdDisplay">Playbook ID</label>
+        <input type="text" id="playbookIdDisplay" readonly aria-describedby="playbookIdHelp">
+        <p id="playbookIdHelp" class="field-help">
+          Stable across edits and re-exports. Together with the version number it lets a downstream
+          system tell an update apart from a new playbook.
+        </p>
       </div>
     </div>
   </section>
