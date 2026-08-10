@@ -32,6 +32,9 @@
     capturedBy: document.getElementById('playbookCapturedBy'),
     playbookIdDisplay: document.getElementById('playbookIdDisplay'),
     exportState: document.getElementById('exportState'),
+    shape: document.getElementById('playbookShape'),
+    shapeBar: document.getElementById('shapeBar'),
+    shapeRead: document.getElementById('shapeRead'),
   };
 
   const expandedStepIds = new Set();
@@ -186,6 +189,64 @@
       els.stepsContainer.appendChild(node);
       updateStepSummary(node, step);
     });
+
+    renderShape();
+  }
+
+  // L0-L4 as a level, not just a string: the gap is visible without reading the value.
+  function maturityNumber(step) {
+    const m = /L([0-4])/.exec(step.maturityLevel || '');
+    return m ? Number(m[1]) : null;
+  }
+
+  const MATURITY_READY = 2;
+
+  // The automation picture. Every field this needs is already on the steps — without
+  // drawing it you can only get this by reading all of them and holding it in your head.
+  function renderShape() {
+    if (!els.shape) return;
+    const steps = state.steps;
+    if (steps.length < 2) {
+      els.shape.hidden = true;
+      return;
+    }
+    els.shape.hidden = false;
+
+    els.shapeBar.innerHTML = steps
+      .map((s) => {
+        const v = (s.delegationVerdict || '').trim();
+        const lvl = maturityNumber(s);
+        // Only delegation candidates can be "not ready to hand over" — a HUMAN-ONLY step
+        // is a fixed handoff point, so its maturity is not blocking anything. Marking it
+        // would also make the mark disagree with the count in the sentence below.
+        const immature = v && v !== 'HUMAN-ONLY' && lvl !== null && lvl < MATURITY_READY;
+        const label = (s.name || s.stepId || 'Unnamed step') + (v ? ' — ' + v : ' — unrated');
+        return (
+          '<span class="shape-seg' + (immature ? ' immature' : '') + '"' +
+          ' data-verdict="' + v + '" title="' + label.replace(/"/g, '&quot;') + '"></span>'
+        );
+      })
+      .join('');
+
+    const rated = steps.filter((s) => (s.delegationVerdict || '').trim());
+    const candidates = rated.filter((s) => s.delegationVerdict !== 'HUMAN-ONLY');
+    const blocked = candidates.filter((s) => {
+      const l = maturityNumber(s);
+      return l !== null && l < MATURITY_READY;
+    });
+    const unrated = steps.length - rated.length;
+
+    const parts = [
+      '<b>' + steps.length + '</b> steps',
+      '<b>' + candidates.length + '</b> can be delegated (AGENT or ASSISTED)',
+    ];
+    if (blocked.length) {
+      parts.push('<b>' + blocked.length + '</b> of those sit below L' + MATURITY_READY + ' and are not ready to hand over yet');
+    }
+    if (unrated) {
+      parts.push('<b>' + unrated + '</b> still unrated');
+    }
+    els.shapeRead.innerHTML = parts.join(' · ') + '.';
   }
 
   function updateStepSummary(card, step) {
@@ -262,7 +323,7 @@
     }
     if (isDirty()) {
       const never = !(state.local && state.local.lastExportSignature);
-      els.exportState.textContent = never ? '● Not yet exported' : '● Unsaved changes since last export';
+      els.exportState.textContent = never ? '● NOT EXPORTED' : '● UNSAVED CHANGES';
       els.exportState.className = 'export-state is-dirty';
       els.exportState.title =
         'Your work is autosaved in this browser only. Clearing site data or moving to another ' +
@@ -270,7 +331,7 @@
     } else {
       const v = Number(state.playbook.version) || 0;
       // v === 0 means this content came in via Import and has never been exported from here.
-      els.exportState.textContent = v ? '✓ Exported v' + v : '✓ Matches imported file';
+      els.exportState.textContent = v ? '✓ EXPORTED v' + v : '✓ MATCHES FILE';
       els.exportState.className = 'export-state is-clean';
       els.exportState.title = v
         ? 'The current content matches the last file you exported.'
@@ -486,6 +547,9 @@
         break;
       }
     }
+    // Verdict and maturity are shown as state in the header and in the shape figure,
+    // so both have to follow the field immediately rather than on the next full render.
+    renderShape();
     persist();
     updatePreview();
     if (matchedField) {

@@ -44,13 +44,15 @@
     </label>
     <button id="exportBtn" class="btn btn-primary" type="button">Export JSON</button>
     <button id="copyPromptBtn" class="btn btn-ghost" type="button">Copy Claude Prompt</button>
-    <span id="exportState" class="export-state" role="status" aria-live="polite"></span>
     <span id="statusMsg" class="status-msg" role="status" aria-live="polite"></span>
     <button id="themeToggleBtn" class="btn btn-ghost theme-toggle-btn" type="button" aria-label="Toggle light/dark theme">🌙 Dark</button>
   </section>
 
   <section class="card playbook-meta">
-    <h2>Playbook Details</h2>
+    <div class="card-head">
+      <h2>Playbook Details</h2>
+      <span id="exportState" class="export-state" role="status" aria-live="polite"></span>
+    </div>
     <div class="field">
       <label for="playbookTitle">Title</label>
       <input type="text" id="playbookTitle" placeholder="e.g., Weekly Invoice Reconciliation">
@@ -94,6 +96,17 @@
         <button id="addStepBtn" class="btn btn-primary" type="button">+ Add Step</button>
       </div>
     </div>
+    <figure id="playbookShape" class="shape" hidden>
+      <p class="shape-title">Shape of this playbook</p>
+      <div id="shapeBar" class="shape-bar" role="img" aria-labelledby="shapeRead"></div>
+      <p id="shapeRead" class="shape-read"></p>
+      <div class="shape-legend">
+        <span style="color:var(--verdict-agent)"><i></i>AGENT</span>
+        <span style="color:var(--verdict-assisted)"><i></i>ASSISTED</span>
+        <span style="color:var(--verdict-human)"><i></i>HUMAN-ONLY</span>
+        <span style="color:var(--warn)"><i class="rule"></i>BELOW L2 — NOT READY</span>
+      </div>
+    </figure>
     <div id="stepsContainer" class="steps-container"></div>
     <p id="emptyState" class="empty-state">No steps yet. Click "Add Step" to start building your playbook, or import an existing JSON file above.</p>
   </section>
