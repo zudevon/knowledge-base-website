@@ -6,11 +6,23 @@
 <title>Playbook Builder — Process Automation Knowledge Base</title>
 <meta name="description" content="Document a process step by step, capture inputs/outputs per step, then export JSON to use as LLM context for automation planning.">
 <link rel="stylesheet" href="css/style.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css"
+  integrity="sha256-V+Wzf3LZX5dZcmPxfvCunwoM17lm4Dm59DUIBA1d7fI="
+  crossorigin="anonymous"
+>
 <script>
   (function () {
     try {
-      var t = localStorage.getItem('playbookBuilder.theme');
-      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      var stored = localStorage.getItem('playbookBuilder.theme');
+      var theme =
+        stored === 'light' || stored === 'dark'
+          ? stored
+          : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
     } catch (e) {}
   })();
 </script>
@@ -61,7 +73,11 @@
   <section class="steps-section">
     <div class="steps-header">
       <h2>Steps</h2>
-      <button id="addStepBtn" class="btn btn-primary" type="button">+ Add Step</button>
+      <div class="steps-header-actions">
+        <button id="expandAllBtn" class="btn btn-ghost" type="button">Expand All</button>
+        <button id="collapseAllBtn" class="btn btn-ghost" type="button">Collapse All</button>
+        <button id="addStepBtn" class="btn btn-primary" type="button">+ Add Step</button>
+      </div>
     </div>
     <div id="stepsContainer" class="steps-container"></div>
     <p id="emptyState" class="empty-state">No steps yet. Click "Add Step" to start building your playbook, or import an existing JSON file above.</p>
@@ -70,6 +86,22 @@
   <section class="card preview-section">
     <button id="togglePreviewBtn" class="btn btn-ghost" type="button" aria-expanded="false">Show JSON Preview</button>
     <pre id="jsonPreview" class="json-preview" hidden></pre>
+  </section>
+
+  <section class="card flow-section">
+    <div class="flow-header">
+      <h2>Process Flow</h2>
+      <div class="flow-toolbar">
+        <button id="flowRefreshBtn" class="btn btn-ghost" type="button">↻ Refresh from Steps</button>
+        <button id="flowZoomOutBtn" class="icon-btn" type="button" aria-label="Zoom out">−</button>
+        <button id="flowZoomInBtn" class="icon-btn" type="button" aria-label="Zoom in">+</button>
+        <button id="flowResetViewBtn" class="btn btn-ghost" type="button">Reset View</button>
+        <button id="flowExportPngBtn" class="btn btn-ghost" type="button">Export PNG</button>
+      </div>
+    </div>
+    <p class="flow-hint">Builds automatically from your steps, in order. Drag nodes to rearrange — positions are remembered in this browser. Node text updates live as you edit; use Refresh after adding, removing, or reordering steps.</p>
+    <div id="flowCanvas" class="flow-canvas"></div>
+    <p id="flowEmptyState" class="empty-state">Add steps above to see the process flow here.</p>
   </section>
 </main>
 
@@ -80,13 +112,20 @@
 <template id="stepTemplate">
   <div class="step-card">
     <div class="step-card-header">
-      <span class="step-number">Step</span>
+      <button type="button" class="step-summary-toggle" aria-expanded="false">
+        <span class="chevron">▸</span>
+        <span class="step-number">Step</span>
+        <span class="step-name-preview">Untitled step</span>
+        <span class="badge badge-verdict" hidden></span>
+        <span class="badge badge-maturity" hidden></span>
+      </button>
       <div class="step-actions">
         <button type="button" class="icon-btn move-up-btn" title="Move step up" aria-label="Move step up">↑</button>
         <button type="button" class="icon-btn move-down-btn" title="Move step down" aria-label="Move step down">↓</button>
         <button type="button" class="icon-btn delete-step-btn" title="Delete step" aria-label="Delete step">✕</button>
       </div>
     </div>
+    <div class="step-body" hidden>
     <div class="field-group">
       <p class="group-heading">Identity &amp; Trigger</p>
       <div class="field-row">
@@ -192,9 +231,28 @@
         <textarea class="step-eval-question" rows="2" placeholder="How would we know an agent executed this correctly? Write it as a testable question, not a sentiment."></textarea>
       </div>
     </div>
+
+    <div class="field-group">
+      <p class="group-heading">Custom Metadata</p>
+      <div class="field">
+        <label>Key/Value Pairs <span class="hint">(one per line, format: key: value)</span></label>
+        <textarea class="step-metadata" rows="2" placeholder="e.g., cost-center: AP-104&#10;risk-tier: low"></textarea>
+      </div>
+    </div>
+    </div>
   </div>
 </template>
 
+<script
+  src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"
+  integrity="sha256-yvjE8Vt14nFpYy7SEicV5SrrWTC5rcpvUZvYKkhaMeI="
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+  integrity="sha256-6H5VB5QyLldKH9oMFUmjxw2uWpPZETQXpCkBaDjquMs="
+  crossorigin="anonymous"
+></script>
 <script src="js/app.js"></script>
 </body>
 </html>

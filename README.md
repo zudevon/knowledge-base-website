@@ -24,16 +24,31 @@ or agent.
   - **Maturity** — L0–L4, plus the specific next action to advance one level
   - **Delegation Verdict** — AGENT / ASSISTED / HUMAN-ONLY, with reason
   - **Eval Question** — a testable question for checking correct execution
+  - **Custom Metadata** — free-form `key: value` pairs for anything the schema doesn't cover
+- Steps collapse to a one-line summary (name + Delegation Verdict + Maturity badges) by
+  default, so a long playbook stays scannable; click a step to expand it. Use **Expand All** /
+  **Collapse All** to toggle everything at once.
 - Reorder, edit, or delete steps at any time.
 - **Import JSON** — load a previously exported playbook (or `sample-playbook.json`) back
   into the form to keep editing it.
 - **Export JSON** — download the current playbook as a `.json` file.
 - **Copy Claude Prompt** — copies the playbook JSON wrapped in a ready-to-paste prompt for
   Claude (or any LLM) asking it to propose an automation plan.
+- **Process Flow** — a diagram at the bottom of the page, auto-built from your steps in
+  order (using [Drawflow](https://github.com/jerosoler/Drawflow)), color-coded by Delegation
+  Verdict. Drag nodes to rearrange them — positions are remembered in this browser. Pan by
+  dragging the canvas background, zoom with the +/− buttons, and use **Export PNG** to save
+  an image of the diagram. Node text updates live as you edit a step's name, verdict, or
+  maturity; use **Refresh from Steps** after adding, removing, or reordering steps to resync
+  the diagram's structure.
 - Work is autosaved to `localStorage` in your browser as you type, so a refresh won't lose
-  your progress — but only Export produces a durable file.
+  your progress — but only Export produces a durable file. (Flow chart node positions are
+  also autosaved locally, but are intentionally left out of the exported JSON since they're
+  a display detail, not process content an LLM needs.)
 
-No build step, no dependencies — plain HTML/CSS/JS, deployable as-is to GitHub Pages.
+No build step — plain HTML/CSS/JS. The only external dependencies are two small libraries
+loaded from a CDN for the flow chart (Drawflow for the diagram, html2canvas for PNG export);
+everything else is dependency-free and deployable as-is to GitHub Pages.
 
 ## JSON schema
 
@@ -61,7 +76,8 @@ No build step, no dependencies — plain HTML/CSS/JS, deployable as-is to GitHub
       "tacitLayer": "string",
       "maturity": { "level": "L0|L1|L2|L3|L4", "nextAction": "string" },
       "delegationVerdict": { "verdict": "AGENT|ASSISTED|HUMAN-ONLY", "reason": "string" },
-      "evalQuestion": "string"
+      "evalQuestion": "string",
+      "metadata": { "any-key": "any-value" }
     }
   ],
   "meta": {
@@ -70,6 +86,9 @@ No build step, no dependencies — plain HTML/CSS/JS, deployable as-is to GitHub
   }
 }
 ```
+
+Flow chart node positions live in `localStorage` alongside the form data, but are not part of
+this exported shape — they're a local display preference, not playbook content.
 
 See [`sample-playbook.json`](sample-playbook.json) for a filled-out example — import it on
 the site to see the app in action.

@@ -7,22 +7,10 @@
   --accent: #3b5bdb;
   --accent-hover: #33499e;
   --danger: #d9463c;
+  --success: #1a7f4b;
+  --warning: #a06a00;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #14161a;
-    --surface: #1c1f26;
-    --border: #2c313b;
-    --text: #e8eaed;
-    --text-muted: #9aa3b0;
-    --accent: #7b93ff;
-    --accent-hover: #97aaff;
-    --danger: #ff6b61;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
-  }
 }
 
 :root[data-theme="dark"] {
@@ -34,6 +22,8 @@
   --accent: #7b93ff;
   --accent-hover: #97aaff;
   --danger: #ff6b61;
+  --success: #4fd88a;
+  --warning: #e0a736;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -232,6 +222,12 @@ input[type="text"]:focus, textarea:focus {
 
 .steps-header h2 { margin: 0; font-size: 1.2rem; }
 
+.steps-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .steps-container {
   display: flex;
   flex-direction: column;
@@ -250,18 +246,71 @@ input[type="text"]:focus, textarea:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+.step-card .step-body {
+  margin-top: 0.75rem;
+}
+
+.step-summary-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+
+.chevron {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  width: 0.8rem;
+  flex-shrink: 0;
 }
 
 .step-number {
   font-weight: 700;
   color: var(--accent);
   font-size: 0.95rem;
+  flex-shrink: 0;
 }
+
+.step-name-preview {
+  color: var(--text);
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-verdict-agent { color: var(--success); border-color: var(--success); }
+.badge-verdict-assisted { color: var(--warning); border-color: var(--warning); }
+.badge-verdict-human-only { color: var(--danger); border-color: var(--danger); }
 
 .step-actions {
   display: flex;
   gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -303,6 +352,100 @@ input[type="text"]:focus, textarea:focus {
   white-space: pre;
   max-height: 420px;
   overflow-y: auto;
+}
+
+.flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.flow-header h2 { margin: 0; font-size: 1.2rem; }
+
+.flow-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.flow-hint {
+  margin: 0.6rem 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.flow-canvas {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Drawflow theme overrides */
+.flow-canvas.drawflow { background: var(--bg); }
+
+.flow-canvas .drawflow-node {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 0;
+  min-width: 200px;
+  color: var(--text);
+}
+
+.flow-canvas .drawflow-node.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.flow-canvas .drawflow-node .input,
+.flow-canvas .drawflow-node .output {
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  height: 12px;
+  width: 12px;
+}
+
+.flow-canvas .connection .main-path {
+  stroke: var(--text-muted);
+  stroke-width: 2px;
+}
+
+.flow-canvas .connection .main-path:hover {
+  stroke: var(--accent);
+}
+
+.flow-node-content {
+  padding: 0.7rem 0.9rem;
+}
+
+.flow-node-index {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.2rem;
+}
+
+.flow-node-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  word-break: break-word;
+}
+
+.flow-node-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 .site-footer {

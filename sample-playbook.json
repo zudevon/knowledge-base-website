@@ -31,7 +31,8 @@
       "tacitLayer": "I re-check the portal total against my download count every time, even though that's never been written down anywhere — it's the only way I've caught silent skips.",
       "maturity": { "level": "L2", "nextAction": "Add a scripted count-check so the mismatch is flagged automatically instead of relying on me remembering to look." },
       "delegationVerdict": { "verdict": "AGENT", "reason": "Mechanical download-and-count task with a clear, testable success condition." },
-      "evalQuestion": "Does the number of PDFs in /invoices/{week}/ exactly equal the portal's displayed invoice count for that date range?"
+      "evalQuestion": "Does the number of PDFs in /invoices/{week}/ exactly equal the portal's displayed invoice count for that date range?",
+      "metadata": { "cost-center": "AP-104", "risk-tier": "low" }
     },
     {
       "id": "match-invoices-to-pos",
@@ -57,7 +58,8 @@
       "tacitLayer": "For long-standing vendors I trust, I sometimes let a slightly-over-$50 mismatch through if it's clearly a rounding/tax difference — that judgment call has never been written down.",
       "maturity": { "level": "L1", "nextAction": "Write down the specific 'clearly a rounding/tax difference' heuristic so it can be codified as a rule instead of relying on tacit judgment." },
       "delegationVerdict": { "verdict": "ASSISTED", "reason": "The $ thresholds are automatable, but edge-case judgment on rounding/tax differences still needs a human until that heuristic is made explicit." },
-      "evalQuestion": "For a batch of test invoices with known mismatches, does the system apply the correct threshold-based routing (auto-approve / escalate / hold) for 100% of them?"
+      "evalQuestion": "For a batch of test invoices with known mismatches, does the system apply the correct threshold-based routing (auto-approve / escalate / hold) for 100% of them?",
+      "metadata": { "cost-center": "AP-104", "risk-tier": "medium" }
     }
   ],
   "meta": {
