@@ -11,8 +11,11 @@
  *   node tools/to-atlas.mjs "Weekly Invoice Reconciliation.json" > records.json
  *   iris datasets import records.json -s xart-playbook
  *
- * Re-running is safe: external_id is derived from the playbook title, so a second
- * import of an edited playbook MERGES onto the same row instead of duplicating it.
+ * IDENTITY. If the export carries a `playbook.playbookId` (PR #1), that is the record's
+ * identity and renaming the playbook keeps its lineage. Without one — every export made
+ * before that lands, including sample-playbook.json — we fall back to a slug of the title.
+ * The fallback is honest but weak: rename the playbook and you get a second record, which
+ * is precisely the fragility PR #1 exists to remove. Prefer the id.
  *
  * WHY THE ROLLUPS ARE COMPUTED HERE. The Atlas schema carries step_count,
  * delegable_count, blocked_count, unrated_count and lowest_maturity as real columns
@@ -54,12 +57,18 @@ function toRecord(doc, sourceFile) {
         (s) => Number.isInteger(MATURITY[s?.maturity?.level]) && verdictOf(s) !== '',
     );
 
+    // A real playbookId is stable across renames; the title slug is only a stand-in.
+    const identity = String(pb.playbookId || '').trim() || slugify(pb.title);
+
     return {
-        external_id: slugify(pb.title),
+        external_id: identity,
         data: {
             title: pb.title || '(untitled)',
-            playbook_id: slugify(pb.title),
-            version: Number(doc?.meta?.schemaVersion ?? 1),
+            playbook_id: identity,
+            // The playbook's OWN version (bumped per export), not the capture-format
+            // version — those are different numbers and conflating them loses the
+            // "which file is newer" signal entirely.
+            version: Number(pb.version ?? doc?.meta?.version ?? 0),
             objective: pb.objective || '',
             process_owner: pb.owner || '',
             captured_by: pb.capturedBy || '',

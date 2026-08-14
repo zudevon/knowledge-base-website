@@ -26,15 +26,27 @@ iris datasets import records.json -s xart-playbook --dry-run
 
 ## Re-running is safe
 
-`external_id` is derived from the playbook title, so importing an edited playbook
-**merges onto the same record**. Verified:
+Importing an edited playbook **merges onto the same record**. Verified against a live
+dataset:
 
 ```
 first run   Created 1 · Merged 0 · Total 1
 second run  Created 0 · Merged 1 · Total 1
 ```
 
-Rename the playbook and you get a new record — the title *is* the identity.
+### Which field is the identity
+
+| Export has | Identity | Rename behaviour |
+|---|---|---|
+| `playbook.playbookId` (PR #1) | that id | lineage survives — same record |
+| no id (any export before PR #1) | slug of the title | **creates a second record** |
+
+The fallback keeps older files working, but it is weak on purpose-of-record grounds:
+the title is a label, not an identity. That is the fragility PR #1 removes, and once it
+lands this script picks the id up automatically with no change here.
+
+`version` is the playbook's own export counter, not the capture-format version — they
+are different numbers, and conflating them loses the "which file is newer" signal.
 
 ## What lands in Atlas
 
