@@ -8,7 +8,8 @@ or agent.
 
 ## What it does
 
-- Capture playbook-level details: title, objective, process owner, frequency.
+- Capture playbook-level details: title, objective, process owner, frequency, and **captured by**
+  (who filled the form in, which is often not who owns the process).
 - Add as many steps as needed, each documenting:
   - **ID & Name** — stable identifier, verb-first name
   - **Trigger** — what starts it: event, date, threshold, or request
@@ -42,13 +43,29 @@ or agent.
   maturity; use **Refresh from Steps** after adding, removing, or reordering steps to resync
   the diagram's structure.
 - Work is autosaved to `localStorage` in your browser as you type, so a refresh won't lose
-  your progress — but only Export produces a durable file. (Flow chart node positions are
-  also autosaved locally, but are intentionally left out of the exported JSON since they're
-  a display detail, not process content an LLM needs.)
+  your progress — but only Export produces a durable file. The toolbar shows whether the
+  current content has been exported yet, and closing the tab with unexported changes prompts
+  first. (Flow chart node positions are also autosaved locally, but are intentionally left
+  out of the exported JSON since they're a display detail, not process content an LLM needs.)
 
 No build step — plain HTML/CSS/JS. The only external dependencies are two small libraries
 loaded from a CDN for the flow chart (Drawflow for the diagram, html2canvas for PNG export);
 everything else is dependency-free and deployable as-is to GitHub Pages.
+
+## Playbook identity
+
+Every playbook carries a stable `playbookId` (minted once, shown read-only in the form) and an
+integer `version` that increments on each export. Together they let anything downstream — a
+script, an agent, a database — tell **an updated playbook apart from a brand new one**.
+
+Without this, two exports from the same person are indistinguishable: a re-import either creates
+a duplicate record or blindly overwrites, and there is no way to know which file is newer.
+
+- Exporting bumps the version and names the file `<title>.v<n>.json`.
+- Re-importing an exported file **continues that playbook's lineage** — same id, version carries
+  on from where it was.
+- Files predating this field (including `sample-playbook.json`) still import fine; they are
+  assigned a fresh id and start at version 0.
 
 ## JSON schema
 

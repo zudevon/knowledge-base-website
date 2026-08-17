@@ -11,6 +11,53 @@
   --warning: #a06a00;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+
+  /* Data face. Numbers, identifiers and levels are measured values, not prose —
+     a monospace stack with tabular figures makes them line up and read as such.
+     System faces only: no webfont is loaded, so nothing can fail to Arial. */
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Semantic. Each of these means exactly one thing and never decorates. */
+  --ok: #1c7d5a;
+  --ok-bg: rgba(28, 125, 90, 0.1);
+  --warn: #a4650c;
+  --warn-bg: rgba(164, 101, 12, 0.1);
+
+  /* Delegation axis: how much of this step a machine can take.
+     Deliberately NOT red at the human end — HUMAN-ONLY is a fixed handoff
+     point, not a failure, so it reads as the neutral baseline. */
+  --verdict-agent: #1c7d5a;
+  --verdict-agent-bg: rgba(28, 125, 90, 0.1);
+  --verdict-assisted: #a4650c;
+  --verdict-assisted-bg: rgba(164, 101, 12, 0.1);
+  --verdict-human: #5b6472;
+  --verdict-human-bg: rgba(91, 100, 114, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14161a;
+    --surface: #1c1f26;
+    --border: #2c313b;
+    --text: #e8eaed;
+    --text-muted: #9aa3b0;
+    --accent: #7b93ff;
+    --accent-hover: #97aaff;
+    --danger: #ff6b61;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    /* Lifted, not inverted — these hues go muddy against a dark ground. */
+    --ok: #46c295;
+    --ok-bg: rgba(70, 194, 149, 0.14);
+    --warn: #e0a33a;
+    --warn-bg: rgba(224, 163, 58, 0.14);
+    --verdict-agent: #46c295;
+    --verdict-agent-bg: rgba(70, 194, 149, 0.14);
+    --verdict-assisted: #e0a33a;
+    --verdict-assisted-bg: rgba(224, 163, 58, 0.14);
+    --verdict-human: #9aa3b0;
+    --verdict-human-bg: rgba(154, 163, 176, 0.14);
+  }
 }
 
 :root[data-theme="dark"] {
@@ -25,6 +72,17 @@
   --success: #4fd88a;
   --warning: #e0a736;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --ok: #46c295;
+  --ok-bg: rgba(70, 194, 149, 0.14);
+  --warn: #e0a33a;
+  --warn-bg: rgba(224, 163, 58, 0.14);
+  --verdict-agent: #46c295;
+  --verdict-agent-bg: rgba(70, 194, 149, 0.14);
+  --verdict-assisted: #e0a33a;
+  --verdict-assisted-bg: rgba(224, 163, 58, 0.14);
+  --verdict-human: #9aa3b0;
+  --verdict-human-bg: rgba(154, 163, 176, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -78,6 +136,40 @@ main {
   color: var(--text-muted);
   font-size: 0.85rem;
   flex: 1;
+}
+
+.export-state {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.export-state:empty {
+  display: none;
+}
+
+.export-state.is-dirty {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-color: var(--warn);
+}
+
+.export-state.is-clean {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+
+.field-help {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
 }
 
 .theme-toggle-btn {
@@ -455,4 +547,167 @@ input[type="text"]:focus, textarea:focus {
   color: var(--text-muted);
   font-size: 0.85rem;
   text-align: center;
+}
+
+/* ── Data face ─────────────────────────────────────────────────────────────
+   Identifiers, versions and levels are measured values. Monospace with tabular
+   figures makes them align down the page and reads as "recorded", not "written". */
+.step-id-field,
+.step-number,
+#playbookIdDisplay,
+.step-maturity-level,
+.step-delegation-verdict {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+#playbookIdDisplay {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.step-number {
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* ── Delegation verdict, as state rather than a dropdown value ──────────────
+   A badge in the step header, not a rail down the card edge — eight identical
+   colour rails is a decorative pattern, this has to read as one fact per step. */
+
+
+
+
+
+/* ── Maturity, as a level rather than a number ──────────────────────────────
+   Five ticks filled to L0–L4: the gap is visible without reading the value. */
+
+
+
+
+
+.step-card-header {
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+
+/* ── The shape of the playbook ──────────────────────────────────────────────
+   Every field this needs already exists on the steps; without it the automation
+   picture is only available by reading all of them and holding it in your head. */
+.shape {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.shape[hidden] {
+  display: none;
+}
+
+.shape-title {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 0.7rem;
+}
+
+.shape-bar {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 0.7rem;
+}
+
+.shape-seg {
+  flex: 1;
+  height: 26px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  position: relative;
+  min-width: 10px;
+}
+
+.shape-seg[data-verdict="AGENT"] { color: var(--verdict-agent); background: var(--verdict-agent-bg); }
+.shape-seg[data-verdict="ASSISTED"] { color: var(--verdict-assisted); background: var(--verdict-assisted-bg); }
+.shape-seg[data-verdict="HUMAN-ONLY"] { color: var(--verdict-human); background: var(--verdict-human-bg); }
+.shape-seg[data-verdict=""] { color: var(--border); background: transparent; }
+
+/* A step whose maturity is below L2 is not ready to be handed over yet, whatever
+   its verdict says — mark it so the blocked ones are findable at a glance. */
+.shape-seg.immature::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -5px 0;
+  height: 2px;
+  background: var(--warn);
+  border-radius: 1px;
+}
+
+.shape-read {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.shape-read b {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.shape-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.shape-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.shape-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  display: inline-block;
+}
+
+/* The "not ready" mark is an underline on the segment, so the legend has to be an
+   underline too — a square here would not match anything on the bar. */
+.shape-legend i.rule {
+  width: 14px;
+  height: 3px;
+  border: none;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+/* Export state is a fact about the document, so it sits with the document's own
+   metadata rather than competing with the file-action buttons for toolbar width. */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.card-head h2 {
+  margin: 0;
 }
