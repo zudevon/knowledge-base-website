@@ -32,6 +32,12 @@
     flowZoomOutBtn: document.getElementById('flowZoomOutBtn'),
     flowResetViewBtn: document.getElementById('flowResetViewBtn'),
     flowExportPngBtn: document.getElementById('flowExportPngBtn'),
+    capturedBy: document.getElementById('playbookCapturedBy'),
+    playbookIdDisplay: document.getElementById('playbookIdDisplay'),
+    exportState: document.getElementById('exportState'),
+    shape: document.getElementById('playbookShape'),
+    shapeBar: document.getElementById('shapeBar'),
+    shapeRead: document.getElementById('shapeRead'),
   };
 
   const expandedStepIds = new Set();
@@ -40,10 +46,25 @@
 
   function makeEmptyState() {
     return {
-      playbook: { title: '', objective: '', owner: '', frequency: '' },
+      playbook: {
+        playbookId: newPlaybookId(),
+        version: 0,
+        title: '',
+        objective: '',
+        owner: '',
+        frequency: '',
+        capturedBy: '',
+        capturedAt: new Date().toISOString(),
+      },
       steps: [],
       flowLayout: {},
+      // Local bookkeeping only — deliberately excluded from buildExportObject().
+      local: { lastExportSignature: null },
     };
+  }
+
+  function newPlaybookId() {
+    return 'pb-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   }
 
   function makeEmptyStep() {
@@ -124,8 +145,11 @@
     els.objective.value = state.playbook.objective || '';
     els.owner.value = state.playbook.owner || '';
     els.frequency.value = state.playbook.frequency || '';
+    els.capturedBy.value = state.playbook.capturedBy || '';
+    els.playbookIdDisplay.value = state.playbook.playbookId || '';
     renderSteps();
     updatePreview();
+    updateExportState();
   }
 
   function renderSteps() {
@@ -168,6 +192,64 @@
       els.stepsContainer.appendChild(node);
       updateStepSummary(node, step);
     });
+
+    renderShape();
+  }
+
+  // L0-L4 as a level, not just a string: the gap is visible without reading the value.
+  function maturityNumber(step) {
+    const m = /L([0-4])/.exec(step.maturityLevel || '');
+    return m ? Number(m[1]) : null;
+  }
+
+  const MATURITY_READY = 2;
+
+  // The automation picture. Every field this needs is already on the steps — without
+  // drawing it you can only get this by reading all of them and holding it in your head.
+  function renderShape() {
+    if (!els.shape) return;
+    const steps = state.steps;
+    if (steps.length < 2) {
+      els.shape.hidden = true;
+      return;
+    }
+    els.shape.hidden = false;
+
+    els.shapeBar.innerHTML = steps
+      .map((s) => {
+        const v = (s.delegationVerdict || '').trim();
+        const lvl = maturityNumber(s);
+        // Only delegation candidates can be "not ready to hand over" — a HUMAN-ONLY step
+        // is a fixed handoff point, so its maturity is not blocking anything. Marking it
+        // would also make the mark disagree with the count in the sentence below.
+        const immature = v && v !== 'HUMAN-ONLY' && lvl !== null && lvl < MATURITY_READY;
+        const label = (s.name || s.stepId || 'Unnamed step') + (v ? ' — ' + v : ' — unrated');
+        return (
+          '<span class="shape-seg' + (immature ? ' immature' : '') + '"' +
+          ' data-verdict="' + v + '" title="' + label.replace(/"/g, '&quot;') + '"></span>'
+        );
+      })
+      .join('');
+
+    const rated = steps.filter((s) => (s.delegationVerdict || '').trim());
+    const candidates = rated.filter((s) => s.delegationVerdict !== 'HUMAN-ONLY');
+    const blocked = candidates.filter((s) => {
+      const l = maturityNumber(s);
+      return l !== null && l < MATURITY_READY;
+    });
+    const unrated = steps.length - rated.length;
+
+    const parts = [
+      '<b>' + steps.length + '</b> steps',
+      '<b>' + candidates.length + '</b> can be delegated (AGENT or ASSISTED)',
+    ];
+    if (blocked.length) {
+      parts.push('<b>' + blocked.length + '</b> of those sit below L' + MATURITY_READY + ' and are not ready to hand over yet');
+    }
+    if (unrated) {
+      parts.push('<b>' + unrated + '</b> still unrated');
+    }
+    els.shapeRead.innerHTML = parts.join(' · ') + '.';
   }
 
   function updateStepSummary(card, step) {
@@ -216,10 +298,55 @@
     };
   }
 
+  // Signature of the meaningful content, used to tell "changed since last export" from
+  // "unchanged". Version and timestamps are excluded so that bumping the version on export
+  // does not itself count as a change.
+  function contentSignature() {
+    const { playbookId, version, capturedAt, ...rest } = state.playbook;
+    return JSON.stringify({ playbook: rest, steps: state.steps });
+  }
+
+  function isDirty() {
+    const sig = state.local && state.local.lastExportSignature;
+    if (sig === null || sig === undefined) return hasContent();
+    return sig !== contentSignature();
+  }
+
+  function hasContent() {
+    const p = state.playbook;
+    return Boolean(p.title || p.objective || p.owner || p.capturedBy || state.steps.length);
+  }
+
+  function updateExportState() {
+    if (!els.exportState) return;
+    if (!hasContent()) {
+      els.exportState.textContent = '';
+      els.exportState.className = 'export-state';
+      return;
+    }
+    if (isDirty()) {
+      const never = !(state.local && state.local.lastExportSignature);
+      els.exportState.textContent = never ? '● NOT EXPORTED' : '● UNSAVED CHANGES';
+      els.exportState.className = 'export-state is-dirty';
+      els.exportState.title =
+        'Your work is autosaved in this browser only. Clearing site data or moving to another ' +
+        'machine loses it — Export JSON to get a durable file.';
+    } else {
+      const v = Number(state.playbook.version) || 0;
+      // v === 0 means this content came in via Import and has never been exported from here.
+      els.exportState.textContent = v ? '✓ EXPORTED v' + v : '✓ MATCHES FILE';
+      els.exportState.className = 'export-state is-clean';
+      els.exportState.title = v
+        ? 'The current content matches the last file you exported.'
+        : 'The current content still matches the file you imported.';
+    }
+  }
+
   function updatePreview() {
     if (!els.jsonPreview.hidden) {
       els.jsonPreview.textContent = JSON.stringify(buildExportObject(), null, 2);
     }
+    updateExportState();
   }
 
   // ---- State mutation ----
@@ -307,7 +434,11 @@
   // always mints fresh internal ids and resets flowLayout (no positions in the export).
   function normalizeImportedFile(parsed) {
     const base = makeEmptyState();
+    // Spreading the incoming playbook last preserves an existing playbookId/version/capturedAt,
+    // so re-importing an exported file continues that playbook's lineage rather than forking it.
+    // Files from before this field existed fall back to the freshly-minted id in `base`.
     const playbook = { ...base.playbook, ...(parsed && parsed.playbook ? parsed.playbook : {}) };
+    playbook.version = Number(playbook.version) || 0;
     const rawSteps = parsed && Array.isArray(parsed.steps) ? parsed.steps : [];
     const asArray = (v) => (Array.isArray(v) ? v : linesToArray(v));
     const steps = rawSteps.map((s) => {
@@ -338,7 +469,8 @@
         metadata,
       };
     });
-    return { playbook, steps, flowLayout: {} };
+    const local = parsed && parsed.local ? parsed.local : base.local;
+    return { playbook, steps, flowLayout: {}, local };
   }
 
   // ---- Status messages ----
@@ -369,6 +501,11 @@
   });
   els.frequency.addEventListener('input', () => {
     state.playbook.frequency = els.frequency.value;
+    persist();
+    updatePreview();
+  });
+  els.capturedBy.addEventListener('input', () => {
+    state.playbook.capturedBy = els.capturedBy.value;
     persist();
     updatePreview();
   });
@@ -413,6 +550,9 @@
         break;
       }
     }
+    // Verdict and maturity are shown as state in the header and in the shape figure,
+    // so both have to follow the field immediately rather than on the next full render.
+    renderShape();
     persist();
     updatePreview();
     if (matchedField) {
@@ -479,6 +619,8 @@
         const parsed = JSON.parse(reader.result);
         state = normalizeImportedFile(parsed);
         expandedStepIds.clear();
+        // The content just came from a file on disk, so a durable copy demonstrably exists.
+        state.local.lastExportSignature = contentSignature();
         persist();
         renderAll();
         rebuildFlowChart();
@@ -493,6 +635,8 @@
   });
 
   els.exportBtn.addEventListener('click', () => {
+    // Bump before building so the exported file carries the version it is.
+    state.playbook.version = (Number(state.playbook.version) || 0) + 1;
     const data = buildExportObject();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -504,11 +648,14 @@
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '') || 'playbook';
     a.href = url;
-    a.download = `${safeTitle}.json`;
+    a.download = `${safeTitle}.v${state.playbook.version}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    state.local.lastExportSignature = contentSignature();
+    persist();
+    updateExportState();
     setStatus('Exported ' + a.download);
     lastExportName = a.download;
     if (els.atlasHint) {

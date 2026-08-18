@@ -11,6 +11,53 @@
   --warning: #a06a00;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+
+  /* Data face. Numbers, identifiers and levels are measured values, not prose —
+     a monospace stack with tabular figures makes them line up and read as such.
+     System faces only: no webfont is loaded, so nothing can fail to Arial. */
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Semantic. Each of these means exactly one thing and never decorates. */
+  --ok: #1c7d5a;
+  --ok-bg: rgba(28, 125, 90, 0.1);
+  --warn: #a4650c;
+  --warn-bg: rgba(164, 101, 12, 0.1);
+
+  /* Delegation axis: how much of this step a machine can take.
+     Deliberately NOT red at the human end — HUMAN-ONLY is a fixed handoff
+     point, not a failure, so it reads as the neutral baseline. */
+  --verdict-agent: #1c7d5a;
+  --verdict-agent-bg: rgba(28, 125, 90, 0.1);
+  --verdict-assisted: #a4650c;
+  --verdict-assisted-bg: rgba(164, 101, 12, 0.1);
+  --verdict-human: #5b6472;
+  --verdict-human-bg: rgba(91, 100, 114, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14161a;
+    --surface: #1c1f26;
+    --border: #2c313b;
+    --text: #e8eaed;
+    --text-muted: #9aa3b0;
+    --accent: #7b93ff;
+    --accent-hover: #97aaff;
+    --danger: #ff6b61;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    /* Lifted, not inverted — these hues go muddy against a dark ground. */
+    --ok: #46c295;
+    --ok-bg: rgba(70, 194, 149, 0.14);
+    --warn: #e0a33a;
+    --warn-bg: rgba(224, 163, 58, 0.14);
+    --verdict-agent: #46c295;
+    --verdict-agent-bg: rgba(70, 194, 149, 0.14);
+    --verdict-assisted: #e0a33a;
+    --verdict-assisted-bg: rgba(224, 163, 58, 0.14);
+    --verdict-human: #9aa3b0;
+    --verdict-human-bg: rgba(154, 163, 176, 0.14);
+  }
 }
 
 :root[data-theme="dark"] {
@@ -25,6 +72,17 @@
   --success: #4fd88a;
   --warning: #e0a736;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --ok: #46c295;
+  --ok-bg: rgba(70, 194, 149, 0.14);
+  --warn: #e0a33a;
+  --warn-bg: rgba(224, 163, 58, 0.14);
+  --verdict-agent: #46c295;
+  --verdict-agent-bg: rgba(70, 194, 149, 0.14);
+  --verdict-assisted: #e0a33a;
+  --verdict-assisted-bg: rgba(224, 163, 58, 0.14);
+  --verdict-human: #9aa3b0;
+  --verdict-human-bg: rgba(154, 163, 176, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -78,6 +136,40 @@ main {
   color: var(--text-muted);
   font-size: 0.85rem;
   flex: 1;
+}
+
+.export-state {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.export-state:empty {
+  display: none;
+}
+
+.export-state.is-dirty {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-color: var(--warn);
+}
+
+.export-state.is-clean {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+
+.field-help {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
 }
 
 .theme-toggle-btn {
