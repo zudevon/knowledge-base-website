@@ -549,165 +549,23 @@ input[type="text"]:focus, textarea:focus {
   text-align: center;
 }
 
-/* ── Data face ─────────────────────────────────────────────────────────────
-   Identifiers, versions and levels are measured values. Monospace with tabular
-   figures makes them align down the page and reads as "recorded", not "written". */
-.step-id-field,
-.step-number,
-#playbookIdDisplay,
-.step-maturity-level,
-.step-delegation-verdict {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
+/* ── Atlas export hint ───────────────────────────────────────────────────── */
+.atlas-hint {
+  margin: 0 0 1rem;
+  padding: .75rem .9rem;
+  border: 1px solid var(--border, #d8d8d8);
+  border-radius: 6px;
+  background: var(--panel-alt, rgba(0,0,0,.03));
 }
-
-#playbookIdDisplay {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+.atlas-hint-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: .5rem;
 }
-
-.step-number {
-  font-size: 0.75rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+.atlas-cmd {
+  display: block; padding: .55rem .65rem;
+  border: 1px solid var(--border, #d8d8d8); border-radius: 4px;
+  background: var(--bg, #fff);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; line-height: 1.5; word-break: break-all;
 }
-
-/* ── Delegation verdict, as state rather than a dropdown value ──────────────
-   A badge in the step header, not a rail down the card edge — eight identical
-   colour rails is a decorative pattern, this has to read as one fact per step. */
-
-
-
-
-
-/* ── Maturity, as a level rather than a number ──────────────────────────────
-   Five ticks filled to L0–L4: the gap is visible without reading the value. */
-
-
-
-
-
-.step-card-header {
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-
-/* ── The shape of the playbook ──────────────────────────────────────────────
-   Every field this needs already exists on the steps; without it the automation
-   picture is only available by reading all of them and holding it in your head. */
-.shape {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 1rem 1.15rem;
-  margin-bottom: 1rem;
-}
-
-.shape[hidden] {
-  display: none;
-}
-
-.shape-title {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 0.7rem;
-}
-
-.shape-bar {
-  display: flex;
-  gap: 3px;
-  margin-bottom: 0.7rem;
-}
-
-.shape-seg {
-  flex: 1;
-  height: 26px;
-  border-radius: 3px;
-  border: 1px solid currentColor;
-  position: relative;
-  min-width: 10px;
-}
-
-.shape-seg[data-verdict="AGENT"] { color: var(--verdict-agent); background: var(--verdict-agent-bg); }
-.shape-seg[data-verdict="ASSISTED"] { color: var(--verdict-assisted); background: var(--verdict-assisted-bg); }
-.shape-seg[data-verdict="HUMAN-ONLY"] { color: var(--verdict-human); background: var(--verdict-human-bg); }
-.shape-seg[data-verdict=""] { color: var(--border); background: transparent; }
-
-/* A step whose maturity is below L2 is not ready to be handed over yet, whatever
-   its verdict says — mark it so the blocked ones are findable at a glance. */
-.shape-seg.immature::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 -5px 0;
-  height: 2px;
-  background: var(--warn);
-  border-radius: 1px;
-}
-
-.shape-read {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.shape-read b {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-.shape-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem;
-  margin-top: 0.7rem;
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
-.shape-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.shape-legend i {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  border: 1px solid currentColor;
-  display: inline-block;
-}
-
-/* The "not ready" mark is an underline on the segment, so the legend has to be an
-   underline too — a square here would not match anything on the bar. */
-.shape-legend i.rule {
-  width: 14px;
-  height: 3px;
-  border: none;
-  border-radius: 1px;
-  background: currentColor;
-}
-
-/* Export state is a fact about the document, so it sits with the document's own
-   metadata rather than competing with the file-action buttons for toolbar width. */
-.card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.9rem;
-}
-
-.card-head h2 {
-  margin: 0;
-}
+.atlas-note { margin: .5rem 0 0; font-size: 12px; opacity: .75; }

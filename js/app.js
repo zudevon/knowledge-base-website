@@ -19,6 +19,9 @@
     copyPromptBtn: document.getElementById('copyPromptBtn'),
     togglePreviewBtn: document.getElementById('togglePreviewBtn'),
     jsonPreview: document.getElementById('jsonPreview'),
+    atlasHint: document.getElementById('atlasHint'),
+    atlasCmd: document.getElementById('atlasCmd'),
+    copyAtlasCmdBtn: document.getElementById('copyAtlasCmdBtn'),
     statusMsg: document.getElementById('statusMsg'),
     stepTemplate: document.getElementById('stepTemplate'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
@@ -654,16 +657,30 @@
     persist();
     updateExportState();
     setStatus('Exported ' + a.download);
+    lastExportName = a.download;
+    if (els.atlasHint) {
+      els.atlasCmd.textContent =
+        'node tools/to-atlas.mjs "' + a.download + '" > records.json && iris datasets import records.json -s xart-playbook';
+      els.atlasHint.hidden = false;
+    }
   });
 
-  // localStorage is the only store and only Export produces a durable file, so warn before
-  // work can be lost to a closed tab.
-  window.addEventListener('beforeunload', (e) => {
-    if (!isDirty()) return;
-    e.preventDefault();
-    e.returnValue = '';
-    return '';
-  });
+  // ---- Send to Atlas ----
+  // The app stays local-only on purpose: nothing is saved anywhere and the export is
+  // the only artifact. So this deliberately does NOT post from the browser — that would
+  // mean shipping a write credential to a static page. It hands you the two commands
+  // that push the file you just exported, and copies them.
+  let lastExportName = '';
+  if (els.copyAtlasCmdBtn) {
+    els.copyAtlasCmdBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(els.atlasCmd.textContent || '');
+        setStatus('Copied — run it where the file downloaded');
+      } catch {
+        setStatus('Select the command above and copy it');
+      }
+    });
+  }
 
   // ---- JSON preview toggle ----
   els.togglePreviewBtn.addEventListener('click', () => {

@@ -48,6 +48,21 @@
     <button id="themeToggleBtn" class="btn btn-ghost theme-toggle-btn" type="button" aria-label="Toggle light/dark theme">🌙 Dark</button>
   </section>
 
+  <!-- Appears after an export. The app stays local-only: this hands you the commands
+       that push the file you just downloaded, rather than posting from the browser,
+       which would mean putting a write credential in a static page. -->
+  <section id="atlasHint" class="atlas-hint" hidden>
+    <div class="atlas-hint-head">
+      <strong>Send this playbook to IRIS Atlas</strong>
+      <button id="copyAtlasCmdBtn" class="btn btn-ghost" type="button">Copy commands</button>
+    </div>
+    <code id="atlasCmd" class="atlas-cmd"></code>
+    <p class="atlas-note">
+      Run it in the folder the file downloaded to. Re-running an edited playbook merges
+      onto the same record instead of creating a duplicate.
+    </p>
+  </section>
+
   <section class="card playbook-meta">
     <div class="card-head">
       <h2>Playbook Details</h2>
