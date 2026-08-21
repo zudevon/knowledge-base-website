@@ -124,3 +124,22 @@ Then open http://localhost:8000.
 ## Deployment
 
 The site is deployed via GitHub Pages from the `main` branch root.
+
+## Embedding it
+
+The builder is a static page, so it drops into an iframe. Two URL parameters exist for that case,
+because an embedded copy cannot reach this origin's `localStorage` to be told what the host looks
+like:
+
+| param | values | effect |
+|---|---|---|
+| `theme` | `light` \| `dark` | Forces the theme for that load. Does **not** overwrite the visitor's stored choice, so opening the tool directly afterwards still respects it. |
+| `accent` | six hex digits, e.g. `0b8f63` | Retints `--accent` so the tool carries the host's brand. |
+
+```html
+<iframe src="https://zudevon.github.io/knowledge-base-website/?theme=light&accent=0b8f63"></iframe>
+```
+
+Precedence for theme is URL, then stored choice, then `prefers-color-scheme`. Only the accent is
+themeable — the semantic colours (ok / warn, and the delegation axis) each mean one fixed thing and
+are deliberately not exposed.

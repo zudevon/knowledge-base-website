@@ -743,13 +743,43 @@
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
+  /* An embedded copy has a host with its own theme, and no way to reach this origin's
+     localStorage to say so. `?theme=light|dark` lets the embedder state it in the URL.
+     It is a one-shot override for this load only — it deliberately does NOT write to
+     localStorage, so someone who opens the tool directly afterwards still gets the theme
+     they chose here. Precedence: URL, then their stored choice, then the OS. */
+  function getUrlParam(name) {
+    try {
+      return new URLSearchParams(window.location.search).get(name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getUrlTheme() {
+    const t = (getUrlParam('theme') || '').toLowerCase();
+    return t === 'light' || t === 'dark' ? t : null;
+  }
+
   function resolveTheme() {
-    return getStoredTheme() || (systemPrefersDark() ? 'dark' : 'light');
+    return getUrlTheme() || getStoredTheme() || (systemPrefersDark() ? 'dark' : 'light');
+  }
+
+  /* `?accent=RRGGBB` retints the one accent the design uses, so an embed can carry its
+     host's brand without forking the stylesheet. Hex only, validated — an unchecked value
+     here would be a CSS injection point, and the accent is the only token worth exposing:
+     the semantic colours mean fixed things and must not be themeable. */
+  function applyUrlAccent() {
+    const raw = (getUrlParam('accent') || '').replace(/^#/, '');
+    if (!/^[0-9a-fA-F]{6}$/.test(raw)) return;
+    document.documentElement.style.setProperty('--accent', '#' + raw);
+    document.documentElement.style.setProperty('--accent-hover', '#' + raw);
   }
 
   function applyTheme() {
     const theme = resolveTheme();
     document.documentElement.setAttribute('data-theme', theme);
+    applyUrlAccent();
     els.themeToggleBtn.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
     els.themeToggleBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   }
